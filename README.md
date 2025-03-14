@@ -56,7 +56,7 @@ This module creates the following 3 content entity types.
 - These are fieldable.
 - Campaigns can be either global or specific to an affiliate.
 - When you install the module a default global campaign is created.
-- You can create golbal campaigns at
+- You can create global campaigns at
   `/admin/config/affiliate/campaigns` or campaigns specific to your affiliate account at `/user/UID/affiliate/campaigns`
 
 
