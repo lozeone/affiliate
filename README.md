@@ -11,6 +11,7 @@ TODO: This documentation is in progress.
 - The permission 'act as an affiliate' will give a user access to an 'Affiliate
   Center' dashboard on their profile at `/user/UID/affiliate`
 - The global config settings are located at `/admin/config/affiliate/settings`
+- There are also a handful permissions for creating campaigns and viewing stats on the permissions page, so make sure that's configured to your liking
 
 This module creates the following 3 content entity types.
 
@@ -31,7 +32,8 @@ This module creates the following 3 content entity types.
   `\Drupal::service('affiliate.manager')->addConversion()`.
 - When calling
   `addConversion()` A conversion will only be added if the current users device has a valid cookie. So you can call this in
-  `hook_entity_insert()` or an event subscriber for the event you want to trigger a conversion and not worry about *if* it should count.
+  `hook_entity_insert()` or an event subscriber for the event you want to trigger a conversion and not worry about
+  *if* it should count.
 - Conversions are bundled entities, you can create different bundles/types of
   conversions with their own rules at `/admin/structure/affiliate/conversion/types`
 - For Instance: a bundle named 'commerce_orders' could add conversions for
@@ -40,10 +42,10 @@ This module creates the following 3 content entity types.
   submitting a
   webform, both awarding a different commission amount (or no commission at
   all if you just want to track how many times the action occured).
-- This module itself does not
+- The main module itself does not
   automatically create conversions. The creation of conversions should be
   handled by
-  submodules. For example, the **commerce_affiliate** submodule
+  submodules. For example, the included **commerce_affiliate** submodule
   creates conversions for commerce orders.
 
 ### affiliate_campaign ###
@@ -54,6 +56,9 @@ This module creates the following 3 content entity types.
 - These are fieldable.
 - Campaigns can be either global or specific to an affiliate.
 - When you install the module a default global campaign is created.
+- You can create golbal campaigns at
+  `/admin/config/affiliate/campaigns` or campaigns specific to your affiliate account at `/user/UID/affiliate/campaigns`
 
-```
+
+
 
