@@ -1,5 +1,8 @@
 # Affiliate
 
+A Drupal 10 module for tracking affiliate links.
+Based heavily on **affiliate_ng** https://www.drupal.org/project/affiliate_ng with a few changes/improvements.
+
 TODO: This documentation is in progress.
 
 ## INTRODUCTION
@@ -10,7 +13,6 @@ TODO: This documentation is in progress.
 - The global config settings are located at `/admin/config/affiliate/settings`
 
 This module creates the following 3 content entity types.
-
 
 ### affiliate_click ###
 
