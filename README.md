@@ -41,12 +41,12 @@ This module creates the following 3 content entity types.
   while 'webform_submissions' could add conversions for
   submitting a
   webform, both awarding a different commission amount (or no commission at
-  all if you just want to track how many times the action occured).
+  all if you just want to track how many times the action occurred).
 - The main module itself does not
   automatically create conversions. The creation of conversions should be
   handled by
   submodules. For example, the included **commerce_affiliate** submodule
-  creates conversions for commerce orders. But its mainly left up to you to decide what you consider a 'conversion'
+  creates conversions for commerce orders. But it's mainly left up to you to decide what you consider a 'conversion'
 
 ### affiliate_campaign ###
 
