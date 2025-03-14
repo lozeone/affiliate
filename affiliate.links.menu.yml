@@ -1,0 +1,67 @@
+affiliate.admin:
+  title: 'Affiliates'
+  route_name: affiliate.admin
+  description: 'Affiliate Campaign entities'
+  parent: system.admin_structure
+
+
+affiliate.admin.overview:
+  title: 'Affiliates'
+  route_name: view.affiliate_campaigns.page_admin
+  description: 'Manage affiliate settings'
+  parent: system.admin_config
+
+affiliate.admin.config:
+  title: 'Settings'
+  description: 'Settings for affiliates'
+  route_name: affiliate.settings
+  parent: affiliate.admin.overview
+
+affiliate.admin.campaigns:
+  title: 'Campaigns'
+  description: 'Affiliate campaigns'
+  route_name: view.affiliate_campaigns.page_admin
+  parent: affiliate.admin.overview
+
+affiliate.admin.clicks:
+  title: 'Clicks'
+  description: 'Affiliate clicks'
+  route_name: view.affiliate_clicks.page_admin
+  parent: affiliate.admin.overview
+
+
+affiliate.admin.conversions:
+  title: 'Conversions'
+  description: 'Affiliate conversions'
+  route_name: view.affiliate_conversions.page_admin
+  parent: affiliate.admin.overview
+
+
+
+
+#affiliate.admin_config:
+#  title: 'Affiliates'
+#  description: 'Settings for affiliates'
+#  route_name: affiliate.settings
+#  parent: system.admin_config
+
+
+entity.affiliate_campaign.settings:
+  title: 'Campaign settings'
+  route_name: entity.affiliate_campaign.settings
+  description: 'Affiliate Campaign entities'
+  parent: affiliate.admin
+
+#is this used?
+entity.affiliate_conversion.settings:
+  title: 'Conversion settings'
+  route_name: entity.affiliate_conversion.settings
+  description: 'Affiliate Conversion entities'
+  parent: affiliate.admin
+
+entity.affiliate_conversion_type.collection:
+  title: 'Conversion types'
+  route_name: entity.affiliate_conversion_type.collection
+  description: 'Affiliate Conversion entities'
+  parent: affiliate.admin
+

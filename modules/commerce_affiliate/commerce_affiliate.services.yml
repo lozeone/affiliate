@@ -1,0 +1,12 @@
+services:
+  commerce_affiliate.order_complete.create_conversions:
+    class: Drupal\commerce_affiliate\EventSubscriber\CommerceAffiliateCompleteConversion
+    arguments: [ '@entity_type.manager', '@affiliate.manager' ]
+    tags:
+      - { name: event_subscriber }
+
+  commerce_affiliate.order_processor.set_affiliate:
+    class: Drupal\commerce_affiliate\OrderProcessor\CommerceAffiliateSetOrderAffiliate
+    arguments: [ '@entity_type.manager', '@affiliate.manager' ]
+    tags:
+      - { name: commerce_order.order_processor, priority: 110 }

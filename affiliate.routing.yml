@@ -1,0 +1,41 @@
+# Global config settings.
+affiliate.settings:
+  path: '/admin/config/affiliate/settings'
+  defaults:
+    _form: 'Drupal\affiliate\Form\AffiliateSettingsForm'
+    _title: 'Affiliate Settings'
+  requirements:
+    _permission: 'admin affiliate settings'
+
+# Index for our settings subpages.
+affiliate.admin:
+  path: '/admin/structure/affiliate'
+  defaults:
+    _controller: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
+    _title: 'Affiliates'
+  requirements:
+    _permission: 'admin affiliate settings'
+
+# User affiliate dashboard
+entity.user.affiliate:
+  path: '/user/{user}/affiliate'
+  defaults:
+    _controller: 'Drupal\affiliate\Controller\AffiliateUserPagesController::overviewPage'
+    _title: 'Affiliate Center'
+  requirements:
+    _custom_access: 'Drupal\affiliate\Controller\AffiliateUserPagesController::overviewPageAccess'
+
+# User add campaign form
+entity.affiliate_campaign.user_add:
+  path: '/user/{user}/affiliate/campaign/add'
+  defaults:
+    _controller: 'Drupal\affiliate\Controller\AffiliateUserPagesController::addCampaignPage'
+    _title: 'New Campaign'
+  requirements:
+    _custom_access: 'Drupal\affiliate\Controller\AffiliateUserPagesController::addCampaignPageAccess'
+  options:
+    _admin_route: FALSE
+    parameters:
+      user:
+        type: entity:user
+

@@ -1,0 +1,103 @@
+<?php
+
+/**
+ * @file
+ * Contains hook implementations for the Affiliate module.
+ */
+
+use Drupal\affiliate\Hooks\AffiliateHooks;
+use Drupal\Core\Hook\LegacyHook;
+use Drupal\Core\Render\BubbleableMetadata;
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Url;
+
+/**
+ * Legacy hook implementation.
+ *
+ * @todo Remove this method when support for Drupal core < 11.1 is dropped.
+ */
+#[LegacyHook]
+function affiliate_help($route_name, RouteMatchInterface $route_match) {
+  \Drupal::service(AffiliateHooks::class)->help($route_name, $route_match);
+}
+
+/**
+ * Helper function to adds the affiliate params to a url object.
+ */
+function affiliate_url_set_affiliate_params(Url $url, $affiliate_id, $campaign_id = NULL) {
+  /** @var \Drupal\Core\Url $url */
+  $config = \Drupal::config('affiliate.settings');
+  $url->setRouteParameter($config->get('affiliate_key'), $affiliate_id);
+  if ($campaign_id) {
+    $url->setRouteParameter($config->get('campaign_key'), $campaign_id);
+  }
+  $url->setOption('absolute', TRUE);
+  return $url;
+}
+
+/**
+ *
+ */
+function affiliate_add_test_conversions() {
+  $order = \Drupal::entityTypeManager()->getStorage('commerce_order')->load(505);
+  $affiliate = \Drupal::entityTypeManager()->getStorage('user')->load(1);
+
+  $logStorage = \Drupal::entityTypeManager()->getStorage('commerce_log');
+  /** @var \Drupal\commerce_order\Entity\OrderItemInterface $order_item */
+  foreach ($order->getItems() as $key => $order_item) {
+    // Add one conversion per item.
+    \Drupal::service('affiliate.manager')->addConversion('commerce_order_product', $order_item, $affiliate);
+
+    // Add a commerce log that a conversion was created for the item.
+    $logStorage->generate($order, 'commerce_affiliate_conversion', [
+      'affiliate' => $affiliate->toLink(),
+      'campaign' => '',
+      'product_title' => $order_item->getPurchasedEntity()->label(),
+    ])->save();
+  }
+}
+
+/**
+ * Implements hook_token_info_alter().
+ *
+ * Adds the badge image with image_styles to achievement tokens.
+ */
+function affiliate_token_info_alter(&$data) {
+  $data['tokens']['affiliate_conversion']['parent'] = [
+    'name' => t("Parent entity"),
+    'description' => t('The parent entity for the conversion'),
+  ];
+}
+
+/**
+ * Implements hook_tokens().
+ */
+function affiliate_tokens($type, $tokens, array $data, array $options, BubbleableMetadata $bubbleable_metadata) {
+  $token_service = \Drupal::token();
+  $replacements = [];
+  if ($type == 'affiliate_conversion' && !empty($data['affiliate_conversion'])) {
+    /** @var \Drupal\affiliate\Entity\AffiliateConversion $affiliate_conversion */
+    $conversion = $data['affiliate_conversion'];
+
+    foreach ($tokens as $name => $original) {
+      switch ($name) {
+        case 'parent':
+          $entity = $conversion->getParentEntity();
+          $bubbleable_metadata->addCacheableDependency($entity);
+          $title = $entity->label();
+          $replacements[$original] = $title;
+          break;
+      }
+    }
+    // Chained token relationships.
+    if ($entity_tokens = $token_service->findwithPrefix($tokens, 'parent')) {
+
+      dsm($entity_tokens);
+      /** @var \Drupal\Core\Entity\EntityInterface $entity */
+      $entity = $conversion->getParentEntity();
+      $replacements += $token_service->generate($entity->getEntityTypeId(), $entity_tokens, [$entity->getEntityTypeId() => $entity], $options, $bubbleable_metadata);
+    }
+  }
+
+  return $replacements;
+}

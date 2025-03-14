@@ -1,0 +1,8 @@
+commerce_affiliate_conversion:
+  category: commerce_affiliate
+  label: 'Commerce affiliate'
+  template: "<p>Conversion added for {{ affiliate }} using campaign: {{ campaign }} for {{ product_title }}</p>"
+commerce_affiliate_added:
+  category: commerce_affiliate
+  label: 'Commerce affiliate'
+  template: "<p>Assigned affiliate: {{ affiliate }} using campaign: {{ campaign }} to this order.</p>"

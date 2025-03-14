@@ -1,0 +1,159 @@
+<?php
+
+/**
+ * @file
+ */
+
+use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Field\BaseFieldDefinition;
+use Drupal\Core\Form\FormStateInterface;
+
+/**
+ * Implements hook_entity_base_field_info().
+ *
+ * Add base fields to commerce_order entities.
+ *
+ * @see commerce_affiliate_install()
+ */
+function commerce_affiliate_entity_base_field_info(EntityTypeInterface $entity_type) {
+  if ($entity_type->id() == 'commerce_order') {
+    $fields['affiliate_account'] = BaseFieldDefinition::create('entity_reference')
+      ->setLabel(t('Affiliate account'))
+      ->setDescription(t('The affiliate user account'))
+      ->setTranslatable(TRUE)
+      ->setSetting('target_type', 'user')
+      ->setSetting('handler', 'default')
+      ->setDisplayConfigurable("view", TRUE)
+      ->setDisplayConfigurable("form", TRUE);
+
+    $fields['affiliate_campaign'] = BaseFieldDefinition::create('entity_reference')
+      ->setLabel(t('Affiliate campaign'))
+      ->setDescription(t('The affiliate campaign'))
+      ->setTranslatable(TRUE)
+      ->setSetting('target_type', 'affiliate_campaign')
+      ->setSetting('handler', 'default')
+      ->setDisplayConfigurable("view", TRUE)
+      ->setDisplayConfigurable("form", TRUE);
+
+    return $fields;
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function commerce_affiliate_form_affiliate_conversion_type_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  $entity = $form_state->getFormObject()->getEntity();
+  $form['commerce_affiliate'] = [
+    '#type' => 'fieldset',
+    '#tree' => FALSE,
+    '#title' => t('Commerce Affiliate'),
+    '#description' => t('Choose how conversions will be automatically created.<br/>
+                               Note: conversions will only be created if the acting user has a valid affiliate cookie.'),
+    '#description_display' => 'before',
+  ];
+
+  $form['commerce_affiliate']['commission_create'] = [
+    '#type' => 'radios',
+    '#title' => t('When an order is marked as complete'),
+    '#options' => [
+      'commerce_order' => t('Create one conversion <strong>per order</strong> (Commerce Order)'),
+      'commerce_order_item' => t('Create one conversion <strong>per order item</strong> (Commerce Order Item )'),
+      'none' => t('Do not create any conversions.'),
+    ],
+    '#default_value' => $entity->getThirdPartySetting('commerce_affiliate', 'commission_create'),
+    '#required' => TRUE,
+
+  ];
+
+  $form['commerce_affiliate']['commission_type'] = [
+    '#type' => 'radios',
+    '#title' => t('Commission Type'),
+    '#options' => [
+      'flat' => t('Flat rate'),
+      'percent' => t('Percentage of sale'),
+    ],
+    '#default_value' => $entity->getThirdPartySetting('commerce_affiliate', 'commission_type'),
+    '#states' => [
+      'visible' => [
+        ':input[name="commission_create"]' => [
+          ['value' => 'commerce_order'],
+          'or',
+          ['value' => 'commerce_order_item'],
+        ],
+      ],
+    ],
+  ];
+
+  $form['commerce_affiliate']['commission_rate'] = [
+    '#type' => 'number',
+    '#title' => t('Value'),
+    '#default_value' => $entity->getThirdPartySetting('commerce_affiliate', 'commission_rate'),
+    '#description' => t('The amount to award for the conversion.'),
+    '#states' => [
+      'visible' => [
+        ':input[name="commission_create"]' => [
+          ['value' => 'commerce_order'],
+          'or',
+          ['value' => 'commerce_order_item'],
+        ],
+      ],
+    ],
+  ];
+
+  $form['commerce_affiliate']['commission_currency'] = [
+    '#type' => 'textfield',
+    '#title' => t('Currency'),
+    '#default_value' => $entity->getThirdPartySetting('commerce_affiliate', 'commission_currency'),
+    '#description' => t('The currency for the flat rate value. ex: USD'),
+    '#states' => [
+      'visible' => [
+        ':input[name="commission_type"]' => ['value' => 'flat'],
+      ],
+    ],
+  ];
+
+  $form['#entity_builders'][] = 'commerce_affiliate_affiliate_conversion_type_form_builder';
+}
+
+/**
+ * Entity builder for the affiliate_commission_type config entity.
+ */
+function commerce_affiliate_affiliate_conversion_type_form_builder($entity_type, $entity, &$form, FormStateInterface $form_state) {
+  $entity->setThirdPartySetting('commerce_affiliate', 'commission_create', $form_state->getValue('commission_create'));
+  $entity->setThirdPartySetting('commerce_affiliate', 'commission_type', $form_state->getValue('commission_type'));
+  $entity->setThirdPartySetting('commerce_affiliate', 'commission_rate', $form_state->getValue('commission_rate'));
+  $entity->setThirdPartySetting('commerce_affiliate', 'commission_currency', $form_state->getValue('commission_currency'));
+}
+
+/**
+ * Calculates and sets the commission of the conversion.
+ */
+function commerce_affiliate_calculate_comission($conversion) {
+  $conversion_type = $conversion->getBundle();
+  $settings = $conversion_type->getThirdPartySettings('commerce_affiliate');
+  $commission_type = $settings['commission_type'] ?? NULL;
+  if ($commission_type == 'flat') {
+    $conversion->setCommission($settings['commission_rate'], $settings['commission_currency']);
+  }
+  elseif ($commission_type == 'percent') {
+    /** @var \Drupal\Core\Entity\EntityInterface $parent */
+    $parent = $conversion->getParentEntity();
+    $percent = $settings['commission_rate'];
+
+    // Commerce orders has a total_paid field.
+    if ($parent->hasField('total_paid')) {
+      $value = $parent->total_paid->number;
+      $currency = $parent->total_paid->currency_code;
+    }
+    // Commerce line items have a total_price field.
+    elseif ($parent->hasField('total_price')) {
+      $value = $parent->total_price->number;
+      $currency = $parent->total_price->currency_code;
+    }
+    if (isset($value) && $percent) {
+      $amount = $value * ($percent / 100);
+      $conversion->setCommission($amount, $currency ?? '');
+    }
+  }
+}

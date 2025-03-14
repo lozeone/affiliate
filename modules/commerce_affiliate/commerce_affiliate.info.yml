@@ -1,0 +1,8 @@
+name: Commerce Affiliate
+description: 'Provides affiliate commissioning functionality.'
+type: module
+package: Affiliate NG
+core_version_requirement: ^10
+dependencies:
+  - commerce:commerce_order
+  - affiliate:affiliate

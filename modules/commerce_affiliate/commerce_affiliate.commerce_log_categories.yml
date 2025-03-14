@@ -1,0 +1,3 @@
+commerce_affiliate:
+  label: Commerce affiliate
+  entity_type: commerce_order

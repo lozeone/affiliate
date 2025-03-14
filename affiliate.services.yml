@@ -1,0 +1,14 @@
+services:
+  Drupal\affiliate\Hooks\AffiliateHooks:
+    class: Drupal\affiliate\Hooks\AffiliateHooks
+    autowire: true
+
+  affiliate.manager:
+    class: Drupal\affiliate\AffiliateManager
+    arguments: [ '@current_user', '@entity_type.manager', '@request_stack', '@module_handler', '@config.factory' ]
+
+  affiliate.handle_request:
+    class: Drupal\affiliate\EventSubscriber\AffiliateRequestSubscriber
+    arguments: [ '@entity_type.manager', '@affiliate.manager', '@config.factory' ]
+    tags:
+      - { name: event_subscriber }

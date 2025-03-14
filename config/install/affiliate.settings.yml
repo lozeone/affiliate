@@ -1,0 +1,4 @@
+cookie_lifetime: '30 days'
+affiliate_key: 'a'
+campaign_key: 'c'
+allow_owner: '0'

@@ -1,0 +1,26 @@
+entity.affiliate_campaign.user_add:
+  title: Add Campaign
+  route_name: entity.affiliate_campaign.user_add
+  # Using this class adds a destination param to the link
+  class: \Drupal\menu_ui\Plugin\Menu\LocalAction\MenuLinkAdd
+  weight: 15
+  appears_on:
+    - view.user_affiliate_campaigns.page_campaigns
+    - view.affiliate_clicks.page_clicks
+    - entity.user.affiliate
+
+entity.affiliate_campaign.add:
+  title: Add Campaign
+  route_name: entity.affiliate_campaign.add_form
+  # Using this class adds a destination param to the link
+  class: \Drupal\menu_ui\Plugin\Menu\LocalAction\MenuLinkAdd
+  weight: 15
+  appears_on:
+    - entity.affiliate_campaign.collection
+
+
+entity.affiliate_conversion_type.add:
+  route_name: entity.affiliate_conversion_type.add_form
+  title: 'Add Conversion type'
+  appears_on:
+    - entity.affiliate_conversion_type.collection

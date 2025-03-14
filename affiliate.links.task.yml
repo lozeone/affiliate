@@ -1,0 +1,62 @@
+# Affiliate campaign entity
+entity.affiliate_campaign.canonical:
+  title: View
+  route_name: entity.affiliate_campaign.canonical
+  base_route: entity.affiliate_campaign.canonical
+entity.affiliate_campaign.edit_form:
+  title: Edit
+  route_name: entity.affiliate_campaign.edit_form
+  base_route: entity.affiliate_campaign.canonical
+entity.affiliate_campaign.delete_form:
+  title: Delete
+  route_name: entity.affiliate_campaign.delete_form
+  base_route: entity.affiliate_campaign.canonical
+entity.affiliate_campaign.settings:
+  title: 'Settings'
+  route_name: entity.affiliate_campaign.settings
+  base_route: entity.affiliate_campaign.settings
+
+# Affiliate admin pages section.
+affiliate.config.settings:
+  title: 'Settings'
+  route_name: affiliate.settings
+  base_route: affiliate.settings
+  weight: 100
+entity.affiliate_campaign.collection:
+  title: 'Campaigns'
+  route_name: entity.affiliate_campaign.collection
+  base_route: affiliate.settings
+entity.affiliate_click.collection:
+  title: 'Clicks'
+  route_name: entity.affiliate_click.collection
+  base_route: affiliate.settings
+entity.affiliate_conversion.collection:
+  title: 'Conversions'
+  route_name: entity.affiliate_conversion.collection
+  base_route: affiliate.settings
+
+# User affiliate pages.
+entity.user.affiliate:
+  title: 'Affiliate Center'
+  route_name: entity.user.affiliate
+  base_route: entity.user.canonical
+
+affiliate.user_overview:
+  title: 'Overview'
+  route_name: entity.user.affiliate
+  parent_id: entity.user.affiliate
+
+affiliate.user_campaigns:
+  title: 'Campaigns'
+  route_name: view.affiliate_campaigns.page_user
+  parent_id: entity.user.affiliate
+
+affiliate.user_clicks:
+  title: 'Clicks'
+  route_name: view.affiliate_clicks.page_user
+  parent_id: entity.user.affiliate
+
+affiliate.user_conversions:
+  title: 'Conversions'
+  route_name: view.affiliate_conversions.page_user
+  parent_id: entity.user.affiliate

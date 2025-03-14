@@ -1,0 +1,18 @@
+# Schema for the configuration files of the Affiliate module.
+
+affiliate.settings:
+  type: config_object
+  label: 'Affiliate Form Settings'
+  mapping:
+    cookie_lifetime:
+      type: text
+      label: 'The cookie lifetime.'
+    affiliate_key:
+      type: text
+      label: 'The name of the key for affiliates used in urls.'
+    campaign_key:
+      type: text
+      label: 'The name of the key for campaigns used in urls.'
+    allow_owner:
+      type: boolean
+      label: 'Allow affiliates to act on their own urls.'

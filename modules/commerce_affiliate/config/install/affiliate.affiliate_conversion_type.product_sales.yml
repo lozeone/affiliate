@@ -1,0 +1,16 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - commerce_affiliate
+third_party_settings:
+  commerce_affiliate:
+    commission_create: commerce_order_item
+    commission_type: flat
+    commission_rate: '0'
+    commission_currency: USD
+id: product_sales
+label: 'Product Sales'
+description: 'Commerce order item sales'
+default_commission: null
+label_pattern: '(Order [affiliate_conversion:parent:order_id:target_id]) [affiliate_conversion:parent]'

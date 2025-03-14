@@ -1,0 +1,21 @@
+act as an affiliate:
+  title: Act as an affiliate
+  description: Allow this user to track affiliate links.
+manage global campaigns:
+  title: Manage global campaigns
+  description: Allow this user to track affiliate links.
+  restrict access: true
+admin affiliate settings:
+  title: Administer affiliate settings
+  description: Configure settings for affiliates.
+  restrict access: true
+administer affiliate_campaign entities:
+  title: Administer Affiliate campaign entities
+  description: Administer Affiliate campaign entities
+  restrict access: true
+administer affiliate_conversion types:
+  title: Administer Affiliate Conversion types
+  description: Manage the affiliate conversion entity bundles.
+  restrict access: true
+permission_callbacks:
+  - \Drupal\affiliate\AffiliatePermissions::generatePermissions

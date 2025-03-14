@@ -1,0 +1,16 @@
+<?php
+
+/**
+ * Implements hook_install().
+ *
+ * Create a default campaign on installation.
+ */
+function affiliate_install() {
+  $campaign = \Drupal::entityTypeManager()->getStorage('affiliate_campaign')->create([
+      'user_id' => 0,
+      'name' => 'Default Campaign',
+      'is_default' => 1,
+    ]
+  );
+  $campaign->save();
+}

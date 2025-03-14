@@ -1,0 +1,59 @@
+<?php
+
+/**
+ * @file
+ */
+
+use Drupal\Core\Field\BaseFieldDefinition;
+
+/**
+ * Implements hook_install().
+ *
+ * Adds affiliate fields to commerce order entities.
+ */
+function commerce_affiliate_install() {
+  $update_manager = \Drupal::entityDefinitionUpdateManager();
+
+  $storage_definition = BaseFieldDefinition::create('entity_reference')
+    ->setLabel(t('Affiliate account'))
+    ->setDescription(t('The affiliate user account'))
+    ->setTranslatable(TRUE)
+    ->setSetting('target_type', 'user')
+    ->setSetting('handler', 'default')
+    ->setDisplayConfigurable("view", TRUE)
+    ->setDisplayConfigurable("form", TRUE);
+  $update_manager->installFieldStorageDefinition('affiliate_account', 'commerce_order', 'commerce_affiliate', $storage_definition);
+
+  $storage_definition = BaseFieldDefinition::create('entity_reference')
+    ->setLabel(t('Affiliate campaign'))
+    ->setDescription(t('The affiliate campaign'))
+    ->setTranslatable(TRUE)
+    ->setSetting('target_type', 'affiliate_campaign')
+    ->setSetting('handler', 'default')
+    ->setDisplayConfigurable("view", TRUE)
+    ->setDisplayConfigurable("form", TRUE);
+  $update_manager->installFieldStorageDefinition('affiliate_campaign', 'commerce_order', 'commerce_affiliate', $storage_definition);
+}
+
+/**
+ * Implements hook_uninstall().
+ *
+ * Remove our custom fields.
+ */
+function commerce_affiliate_uninstall() {
+  // Grabs the entity Field Manager service.
+  $entityFieldManager = Drupal::service('entity_field.manager');
+
+  // Grabs the Field Definition listener.
+  $fieldDefinitionListener = \Drupal::service('field_definition.listener');
+
+  // Uninstall fields.
+  $definitions = $entityFieldManager->getFieldStorageDefinitions('commerce_order');
+
+  if ($definitions['affiliate_account']) {
+    $fieldDefinitionListener->onFieldDefinitionDelete($definitions['affiliate_account']);
+  }
+  if ($definitions['affiliate_campaign']) {
+    $fieldDefinitionListener->onFieldDefinitionDelete($definitions['affiliate_campaign']);
+  }
+}
