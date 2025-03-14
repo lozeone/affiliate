@@ -31,7 +31,7 @@ This module creates the following 3 content entity types.
   `\Drupal::service('affiliate.manager')->addConversion()`.
 - When calling
   `addConversion()` A conversion will only be added if the current users device has a valid cookie. So you can call this in
-  `hook_entity_submit()` or an event subscriber for the event you want to trigger a conversion and not worry about *if* it should count.
+  `hook_entity_insert()` or an event subscriber for the event you want to trigger a conversion and not worry about *if* it should count.
 - Conversions are bundled entities, you can create different bundles/types of
   conversions with their own rules at `/admin/structure/affiliate/conversion/types`
 - For Instance: a bundle named 'commerce_orders' could add conversions for
