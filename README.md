@@ -20,7 +20,7 @@ This module creates the following 3 content entity types.
 - Every visit to the site using an affiliate link
   creates an affiliate_click entity.
 - When a click entity is created a cookie is saved on the visitors' device.
-- This happens automatically, you rarely ever need to create a click
+- This happens automatically, you shouldn't ever need to create a click
   entity yourself.
 
 ### affiliate_conversion ###
