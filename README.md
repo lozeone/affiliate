@@ -46,7 +46,7 @@ This module creates the following 3 content entity types.
   automatically create conversions. The creation of conversions should be
   handled by
   submodules. For example, the included **commerce_affiliate** submodule
-  creates conversions for commerce orders.
+  creates conversions for commerce orders. But its mainly left up to you to decide what you consider a 'conversion'
 
 ### affiliate_campaign ###
 
