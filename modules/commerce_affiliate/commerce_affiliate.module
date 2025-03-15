@@ -4,6 +4,7 @@
  * @file
  */
 
+use Drupal\affiliate\Entity\AffiliateConversion;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Form\FormStateInterface;
@@ -129,7 +130,7 @@ function commerce_affiliate_affiliate_conversion_type_form_builder($entity_type,
 /**
  * Calculates and sets the commission of the conversion.
  */
-function commerce_affiliate_calculate_comission($conversion) {
+function commerce_affiliate_calculate_comission(AffiliateConversion $conversion) {
   $conversion_type = $conversion->getBundle();
   $settings = $conversion_type->getThirdPartySettings('commerce_affiliate');
   $commission_type = $settings['commission_type'] ?? NULL;

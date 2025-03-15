@@ -27,15 +27,11 @@ This module creates the following 3 content entity types.
 
 - When an action on the site occurs that you
   consider a "conversion", you need to create a conversion entity. The most
-  obvious case for this is a commerce sale, but any action you want to track as
-  a conversion can be done by calling
-  `\Drupal::service('affiliate.manager')->addConversion()`.
-- When calling
-  `addConversion()` A conversion will only be added if the current users device has a valid cookie. So you can call this in
-  `hook_entity_insert()` or an event subscriber for the event you want to trigger a conversion and not worry about
-  *if* it should count.
+  obvious case for this is a commerce sale, but any action you want could be a conversion.
+
 - Conversions are bundled entities, you can create different bundles/types of
   conversions with their own rules at `/admin/structure/affiliate/conversion/types`
+
 - For Instance: a bundle named 'commerce_orders' could add conversions for
   orders
   while 'webform_submissions' could add conversions for
@@ -47,6 +43,40 @@ This module creates the following 3 content entity types.
   handled by
   submodules. For example, the included **commerce_affiliate** submodule
   creates conversions for commerce orders. But it's mainly left up to you to decide what you consider a 'conversion'
+
+Example for creating a conversion.
+```
+// To get an affiliate user account and campaign saved in the cookie.
+$affliateManager = \Drupal::service('affiliate.manager);
+$affiliate = $affliateManager->getStoredAccount();
+$campaign = $affliateManager->getStoredCampaign();
+
+// Only create a conversion if we have an affiliate.
+if($affiliate){
+
+  $conversion = \Drupal::entityTypeManager('affiliate_conversion')->create(
+    'type' => THE_CONVERSION_BUNDLE
+    'affiliate' => $affiliate, // A user account
+    'campaign' => $campaign,
+  );
+
+  // set an optional entity as a parent.
+  // Typically this would be the entity that caused the conversion to be created.
+  $conversion->setParentEntity($entity);
+
+  // Set an optional comission amount,
+  $conversion->setComission([
+    'amount' => 123.99
+    'currency' => 'USD'
+  ]);
+
+  // Set an optional label on the conversion
+  $conversion->setLabel('Larry bought a t-shirt');
+
+  $conversion->save();
+}
+
+```
 
 ### affiliate_campaign ###
 

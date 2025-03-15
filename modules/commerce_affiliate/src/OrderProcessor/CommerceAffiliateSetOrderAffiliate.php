@@ -51,9 +51,9 @@ class CommerceAffiliateSetOrderAffiliate implements OrderProcessorInterface {
   public function process(OrderInterface $order) {
     if ($order->getCustomerId() == \Drupal::currentUser()->id()) {
       if ($order->hasField('affiliate_account') && $order->affiliate_account->isEmpty()) {
-        if ($affiliate = $this->affiliateManager->getSessionAffiliate()) {
-          $order->set('affiliate_account', $this->affiliateManager->getAffiliateId($affiliate));
-          $order->set('affiliate_campaign', $this->affiliateManager->getSessionCampaign()->id());
+        if ($affiliate = $this->affiliateManager->getStoredAccount()) {
+          $order->set('affiliate_account', $affiliate->id());
+          $order->set('affiliate_campaign', $this->affiliateManager->getStoredCampaign()->id());
           // Add a commerce log that an affiliate was assigned to the order.
           $logStorage = $this->entityTypeManager->getStorage('commerce_log');
           $logStorage->generate($order, 'commerce_affiliate_added', [

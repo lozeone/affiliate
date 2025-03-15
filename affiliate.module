@@ -24,43 +24,29 @@ function affiliate_help($route_name, RouteMatchInterface $route_match) {
 /**
  * Helper function to adds the affiliate params to a url object.
  */
-function affiliate_url_set_affiliate_params(Url $url, $affiliate_id, $campaign_id = NULL) {
+function affiliate_url_set_affiliate_params(Url $url, $affiliate, $campaign = NULL) {
   /** @var \Drupal\Core\Url $url */
   $config = \Drupal::config('affiliate.settings');
-  $url->setRouteParameter($config->get('affiliate_key'), $affiliate_id);
-  if ($campaign_id) {
-    $url->setRouteParameter($config->get('campaign_key'), $campaign_id);
+  switch ($config->get('affiliate_code_type')) {
+    case 'username':
+      $affiliate_code = $affiliate->getAccountName();
+      break;
+
+    case 'user_id':
+    default:
+      $affiliate_code = $affiliate->id();
+      break;
+  }
+  $url->setRouteParameter($config->get('affiliate_key'), $affiliate_code);
+  if ($campaign) {
+    $url->setRouteParameter($config->get('campaign_key'), $campaign->id());
   }
   $url->setOption('absolute', TRUE);
   return $url;
 }
 
 /**
- *
- */
-function affiliate_add_test_conversions() {
-  $order = \Drupal::entityTypeManager()->getStorage('commerce_order')->load(505);
-  $affiliate = \Drupal::entityTypeManager()->getStorage('user')->load(1);
-
-  $logStorage = \Drupal::entityTypeManager()->getStorage('commerce_log');
-  /** @var \Drupal\commerce_order\Entity\OrderItemInterface $order_item */
-  foreach ($order->getItems() as $key => $order_item) {
-    // Add one conversion per item.
-    \Drupal::service('affiliate.manager')->addConversion('commerce_order_product', $order_item, $affiliate);
-
-    // Add a commerce log that a conversion was created for the item.
-    $logStorage->generate($order, 'commerce_affiliate_conversion', [
-      'affiliate' => $affiliate->toLink(),
-      'campaign' => '',
-      'product_title' => $order_item->getPurchasedEntity()->label(),
-    ])->save();
-  }
-}
-
-/**
  * Implements hook_token_info_alter().
- *
- * Adds the badge image with image_styles to achievement tokens.
  */
 function affiliate_token_info_alter(&$data) {
   $data['tokens']['affiliate_conversion']['parent'] = [
@@ -91,8 +77,6 @@ function affiliate_tokens($type, $tokens, array $data, array $options, Bubbleabl
     }
     // Chained token relationships.
     if ($entity_tokens = $token_service->findwithPrefix($tokens, 'parent')) {
-
-      dsm($entity_tokens);
       /** @var \Drupal\Core\Entity\EntityInterface $entity */
       $entity = $conversion->getParentEntity();
       $replacements += $token_service->generate($entity->getEntityTypeId(), $entity_tokens, [$entity->getEntityTypeId() => $entity], $options, $bubbleable_metadata);

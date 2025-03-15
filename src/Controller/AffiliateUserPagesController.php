@@ -76,7 +76,7 @@ class AffiliateUserPagesController extends ControllerBase implements ContainerIn
    */
   public function overviewPage(UserInterface $user) {
     $url = Url::fromRoute('<front>');
-    $url = affiliate_url_set_affiliate_params($url, $user->id());
+    $url = affiliate_url_set_affiliate_params($url, $user);
     $build['intro']['#markup'] = '<p>' . $this->t('Your affiliate link is: @url', ['@url' => $url->toString()]) . '</p>';
     $build['placeholder']['#markup'] = $this->t('Affiliate overview goes here.');
 

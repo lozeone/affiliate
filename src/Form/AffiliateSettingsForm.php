@@ -63,6 +63,8 @@ class AffiliateSettingsForm extends ConfigFormBase {
       ->set('affiliate_key', $form_state->getValue('affiliate_key'))
       ->set('campaign_key', $form_state->getValue('campaign_key'))
       ->set('allow_owner', $form_state->getValue('allow_owner'))
+      ->set('click_precedence', $form_state->getValue('click_precedence'))
+      ->set('affiliate_code_type', $form_state->getValue('affiliate_code_type'))
       ->save();
 
     parent::submitForm($form, $form_state);
@@ -95,6 +97,17 @@ class AffiliateSettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('affiliate_key'),
       '#required' => TRUE,
     ];
+    $form['affiliate_code_type'] = [
+      '#type' => 'radios',
+      '#title' => $this->t('Affiliate variable type'),
+      '#options' => [
+        'user_id' => $this->t('User ID'),
+        'username' => $this->t('Username'),
+      ],
+      '#description' => $this->t('The type of variable to use as the affiliate id.'),
+      '#default_value' => $config->get('affiliate_code_type'),
+      '#required' => TRUE,
+    ];
     $form['campaign_key'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Campaign ID key'),
@@ -107,6 +120,17 @@ class AffiliateSettingsForm extends ConfigFormBase {
       '#title' => $this->t('Record clicks and conversions from own account.'),
       '#description' => $this->t('Allow affiliates to act on their own links.'),
       '#default_value' => $config->get('allow_owner'),
+    ];
+    $form['click_precedence'] = [
+      '#type' => 'radios',
+      '#title' => $this->t('Click precedence'),
+      '#options' => [
+        'overwrite' => $this->t('Overwrite the affiliate cookie (new visit takes precedence)'),
+        'deny' => $this->t('Reject the affiliate cookie (first visit takes precedence)'),
+      ],
+      '#description' => $this->t('When a user that already has an affiliate cookie visits the site through an affiliate link.'),
+      '#default_value' => $config->get('click_precedence'),
+      '#required' => TRUE,
     ];
 
     return parent::buildForm($form, $form_state);

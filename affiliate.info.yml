@@ -1,5 +1,5 @@
 name: Affiliate
 type: module
-description: Provides common Affiliate functionality.
+description: Provides common affiliate functionality.
 package: Affiliate NG
 core_version_requirement: ^10 || ^11

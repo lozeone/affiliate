@@ -4,7 +4,6 @@ namespace Drupal\affiliate;
 
 use Drupal\affiliate\Entity\AffiliateCampaignInterface;
 use Drupal\Core\Config\ConfigFactory;
-use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandler;
 use Drupal\Core\Session\AccountInterface;
@@ -87,20 +86,6 @@ class AffiliateManager {
   }
 
   /**
-   *
-   */
-  public function getAffiliateId(AccountInterface $account) {
-    // First check that this account is a valid affiliate.
-    if ($this->isActiveAffiliate($account)) {
-      // @todo make this alterable so we can use something other than the
-      //   accounts userID in the url. For example the username or the value
-      //   of a field stored on the user account.
-      return $account->id();
-    }
-    return FALSE;
-  }
-
-  /**
    * Returns the default campaign.
    *
    * The default campaign is created during installation. All clicks with no
@@ -137,96 +122,147 @@ class AffiliateManager {
    *   The end destination (requested URL)
    */
   public function registerClick(AccountInterface $affiliate, AffiliateCampaignInterface $campaign, string $destination) {
-    // Check if campaign is active.
-    // @todo if campaign is inactive should it fall back to the default
-    //   campaign or cancel the click?
-    if (!$campaign->isPublished()) {
-      return;
-    }
-
     // Check if the affiliate is the same as the current user.
     if (!$this->config->get('allow_owner') && $affiliate->id() == $this->currentUser->id()) {
-      return;
+      return FALSE;
     }
 
     $request = $this->requestStack->getCurrentRequest();
-
-    if ($affiliate_id = $this->getAffiliateId($affiliate)) {
-      // Register the click.
-      $click = $this->entityTypeManager->getStorage('affiliate_click')->create([
-        'campaign' => $campaign->id(),
-        'affiliate' => $affiliate_id,
-        'hostname' => $request->getClientIp(),
-        'referrer' => $request->server->get('HTTP_REFERER'),
-        'destination' => $destination,
-      ]);
-      $click->save();
-      return $click;
-    }
-    return FALSE;
+    // Register the click.
+    $click = $this->entityTypeManager->getStorage('affiliate_click')->create([
+      'campaign' => $campaign->id(),
+      'affiliate' => $affiliate->id(),
+      'hostname' => $request->getClientIp(),
+      'referrer' => $request->server->get('HTTP_REFERER'),
+      'destination' => $destination,
+    ]);
+    $click->save();
+    return $click;
   }
 
   /**
-   * Adds an affiliate_conversion entity for an affiliate.
+   * Gets the affiliate code from the cookie.
    *
-   * The conversion amount in calculated in the preSave method of the
-   * affiliate_conversion entity. To alter this with your own logic for
-   * calculating commission you can implement
-   * hook_affiliate_conversion_presave($conversion).
-   *
-   * @param string $type
-   *   The conversion bundle name.
-   * @param \Drupal\Core\Entity\EntityInterface $parent
-   *   The parent entity the conversion was awarded for.
-   * @param \Drupal\Core\Session\AccountInterface $affiliate
-   *   The user account of the affiliate.
-   * @param \Drupal\affiliate\Entity\AffiliateCampaignInterface $campaign
-   *   The affiliate_campaign entity.
-   *
-   * @see \Drupal\affiliate\Entity\AffiliateConversion::preSave()
+   * @return string
    */
-  public function addConversion(string $type, EntityInterface $parent, AccountInterface $affiliate, ?AffiliateCampaignInterface $campaign = NULL, $amount = NULL, $currency = NULL) {
-    if (!$campaign) {
-      $campaign = $this->getDefaultCampaign();
-    }
-    if ($affiliate_id = $this->getAffiliateId($affiliate)) {
-      $values = [
-        'type' => $type,
-        'affiliate' => $affiliate_id,
-        'campaign' => $campaign->id(),
-      ];
-      $conversion = $this->entityTypeManager->getStorage('affiliate_conversion')
-        ->create($values);
-      $conversion->setParentEntity($parent);
-      if (!is_null($amount)) {
-        $conversion->setCommission($amount, $currency);
-      }
-      $conversion->save();
-      return $conversion;
-    }
-    return FALSE;
+  public function getStoredAffiliateCode() {
+    return $this->requestStack->getCurrentRequest()->cookies->get('affiliate_id');
   }
 
   /**
+   * Gets the affiliates user account from the cookie.
    *
+   * @return \Drupal\user\UserInterface|null
+   *   The affiliates user entity or null
    */
-  public function getSessionAffiliate() {
-    $id = $this->requestStack->getCurrentRequest()->cookies->get('affiliate_id');
-    if ($id && is_numeric($id)) {
-      return $this->entityTypeManager->getStorage('user')->load($id);
+  public function getStoredAccount() {
+    if ($affiliate_code = $this->getStoredAffiliateCode()) {
+      return $this->getAccountFromCode($affiliate_code);
     }
     return NULL;
   }
 
   /**
+   * Gets the user account from the code variable.
    *
+   * The code could either be the user id or the username depending on the
+   * config settings.
+   *
+   * @param string|int $account_code
+   *   Either a username or a user_id.
+   *
+   * @return \Drupal\user\UserInterface|null
+   *   The user account if it is an active affiliate.
    */
-  public function getSessionCampaign() {
-    $id = $this->requestStack->getCurrentRequest()->cookies->get('campaign_id');
-    if ($id && is_numeric($id)) {
-      $campaign = $this->entityTypeManager->getStorage('affiliate_campaign')->load($id);
+  public function getAccountFromCode($account_code) {
+    if ($account_code) {
+      switch ($this->config->get('affiliate_code_type')) {
+        case 'username':
+          $user = user_load_by_name($account_code);
+          break;
+
+        case 'user_id':
+        default:
+          if (is_numeric($account_code)) {
+            $user = $this->entityTypeManager->getStorage('user')->load($account_code);
+          }
+          break;
+      }
+      // Check that this account is a valid affiliate.
+      if ($user && $this->isActiveAffiliate($user)) {
+        return $user;
+      }
     }
-    return !empty($campaign) ? $campaign : $this->getDefaultCampaign();
+
+    return NULL;
+  }
+
+  /**
+   * Gets the campaign code form the cookie.
+   */
+  public function getStoredCampaignCode() {
+    return $this->requestStack->getCurrentRequest()->cookies->get('campaign_id');
+  }
+
+  /**
+   * Gets the campaign entity from the cookie.
+   */
+  public function getStoredCampaign() {
+    $campaign_code = $this->getStoredCampaignCode();
+    return $this->getCampaignFromCode($campaign_code);
+  }
+
+  /**
+   * Gets the campaign entity from the code variable.
+   *
+   * @param string|int $campaign_id
+   *   The campaign entity id.
+   *
+   * @return \Drupal\Core\Entity\EntityInterface
+   *   The campaign entity from the $campaign_id or the default entity
+   *   if it is not valid.
+   */
+  public function getCampaignFromCode($campaign_id) {
+    if ($campaign_id && is_numeric($campaign_id)) {
+      // @todo make this alterable so we can use something other than the
+      //   entity ID in the url. For example a string value
+      //   of a field stored on campaign entity.
+      /** @var  \Drupal\affiliate\Entity\AffiliateCampaign $campaign */
+      $campaign = $this->entityTypeManager->getStorage('affiliate_campaign')->load($campaign_code);
+      if ($campaign && $campaign->isPublished()) {
+        return $campaign;
+      }
+    }
+    return $this->getDefaultCampaign();
+  }
+
+  /**
+   * Sets up a conversion entity.
+   *
+   * @param string $type
+   *   The conversion bundle.
+   *
+   * @return \Drupal\affiliate\Entity\AffiliateConversion|null
+   *   A new (unsaved) conversion with the referring affiliate and campaign
+   *   populated or null if there is no referring affiliate account
+   *
+   * @todo this may not even be needed.
+   *
+   * Auto populates the affiliate and campaign if the current user is cookied.
+   * Otherwise returns null.
+   */
+  public function createConversion($type) {
+    $data = [
+      'type' => $type,
+      'affiliate' => $affiliate ?? $this->getStoredAccount(),
+      'campaign' => $campaign ?? $this->getStoredCampaign(),
+    ];
+    if (empty($data['affiliate'])) {
+      return NULL;
+    }
+    /** @var \Drupal\affiliate\Entity\AffiliateConversion $conversion */
+    $conversion = $this->entityTypeManager->getStorage('affiliate_conversion')->create($data);
+    return $conversion;
   }
 
 }

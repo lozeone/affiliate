@@ -75,8 +75,8 @@ class AffiliateRequestSubscriber implements EventSubscriberInterface {
    *   now.
    */
   public function onResponse(ResponseEvent $event) {
-    static $tracked;
-    if ($tracked) {
+    static $checked;
+    if ($checked) {
       return;
     }
     if (!$this->config->get('affiliate_key')) {
@@ -85,31 +85,27 @@ class AffiliateRequestSubscriber implements EventSubscriberInterface {
 
     $request = $event->getRequest();
     $response = $event->getResponse();
-    $affiliate_id = $request->get($this->config->get('affiliate_key'));
-    $campaign_id = $request->get($this->config->get('campaign_key'));
+    $affiliate_code = $request->get($this->config->get('affiliate_key'));
 
-    /** @var \Drupal\user\UserInterface $affiliate */
-    $affiliate = is_numeric($affiliate_id) ? $this->entityTypeManager->getStorage('user')->load($affiliate_id) : NULL;
-    if (!$affiliate || !$this->affiliateManager->isActiveAffiliate($affiliate)) {
-      return;
-    }
-
-    // Load the referenced campaign, or get the default one.
-    /** @var \Drupal\affiliate\Entity\AffiliateCampaignInterface $campaign */
-    $campaign = $campaign_id ? $this->entityTypeManager->getStorage('affiliate_campaign')->load($campaign_id) : NULL;
-    if (!$campaign) {
-      $campaign = $this->affiliateManager->getDefaultCampaign();
-    }
-    if ($campaign) {
-      $click = $this->affiliateManager->registerClick($affiliate, $campaign, $request->getPathInfo());
-      // If our click was successful, set a cookie.
-      if ($click) {
-        $cookie_lifetime = strtotime('+' . $this->config->get('cookie_lifetime'));
-        $response->headers->setCookie(new Cookie('affiliate_id', $affiliate->id(), $cookie_lifetime));
-        $response->headers->setCookie(new Cookie('affiliate_campaign', $campaign->id(), $cookie_lifetime));
+    if ($affiliate_code) {
+      if ($this->config->get('click_precedence') == 'overwrite' || !$this->affiliateManager->getStoredAffiliateCode()) {
+        /** @var \Drupal\user\UserInterface $affiliate */
+        $affiliate = $this->affiliateManager->getAccountFromCode($affiliate_code);
+        $campaign_code = $request->get($this->config->get('campaign_key'));
+        if ($affiliate) {
+          $campaign = $this->affiliateManager->getCampaignFromCode($campaign_code);
+          $click = $this->affiliateManager->registerClick($affiliate, $campaign, $request->getPathInfo());
+          // If our click was successful, set a cookie.
+          if ($click) {
+            $cookie_lifetime = strtotime('+' . $this->config->get('cookie_lifetime'));
+            $affiliate_code = $this->config->get('affiliate_code_type') == 'username' ? $affiliate->getAccountName() : $affiliate->id();
+            $response->headers->setCookie(new Cookie('affiliate_id', $affiliate_code, $cookie_lifetime));
+            $response->headers->setCookie(new Cookie('affiliate_campaign', $campaign->id(), $cookie_lifetime));
+          }
+        }
       }
     }
-    $tracked = TRUE;
+    $checked = TRUE;
   }
 
 }

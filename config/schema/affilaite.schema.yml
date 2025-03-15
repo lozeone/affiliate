@@ -16,3 +16,9 @@ affiliate.settings:
     allow_owner:
       type: boolean
       label: 'Allow affiliates to act on their own urls.'
+    click_precedence:
+      type: text
+      label: 'Which click takes precedence.'
+    affiliate_code_type:
+      type: text
+      label: 'Affiliate code variable type.'
