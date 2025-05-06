@@ -1,3 +1,5 @@
+The lastest version of this project is at https://www.drupal.org/project/affiliated
+
 # Affiliate
 
 A Drupal 10 module for tracking affiliate links.
